@@ -1,6 +1,5 @@
-import Board from './board'
-import Checker from './checker'
-import Game from './game'
+import Board from './src/board'
+import Game from './src/game'
 import './style.css'
 
 const app = document.querySelector('#app')

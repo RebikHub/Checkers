@@ -1,48 +1,47 @@
 export default class Board {
-  constructor() {
+  constructor () {
     // even - четное
     // odd - нечетное
     this.element = document.createElement('div')
     this.board = {
       a: {
         even: 'white',
-        odd: 'black',
+        odd: 'black'
       },
       b: {
         even: 'black',
-        odd: 'white',
+        odd: 'white'
       },
       c: {
         even: 'white',
-        odd: 'black',
+        odd: 'black'
       },
       d: {
         even: 'black',
-        odd: 'white',
+        odd: 'white'
       },
       e: {
         even: 'white',
-        odd: 'black',
+        odd: 'black'
       },
       f: {
         even: 'black',
-        odd: 'white',
+        odd: 'white'
       },
       g: {
         even: 'white',
-        odd: 'black',
+        odd: 'black'
       },
       h: {
         even: 'black',
-        odd: 'white',
-      },
-    },
-    this.horizon = ['a','b','c','d','e','f','g','h']
-    this.vertical = [1,2,3,4,5,6,7,8]
-
+        odd: 'white'
+      }
+    }
+    this.horizon = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    this.vertical = [1, 2, 3, 4, 5, 6, 7, 8]
   }
 
-  render(element) {
+  render (element) {
     const hor = this.horizon
     const ver = this.vertical.reverse()
     const board = this.board
