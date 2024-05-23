@@ -1,71 +1,44 @@
 export default class Board {
   constructor () {
-    // even - четное
-    // odd - нечетное
     this.element = document.createElement('div')
-    this.board = {
-      a: {
-        even: 'white',
-        odd: 'black'
-      },
-      b: {
-        even: 'black',
-        odd: 'white'
-      },
-      c: {
-        even: 'white',
-        odd: 'black'
-      },
-      d: {
-        even: 'black',
-        odd: 'white'
-      },
-      e: {
-        even: 'white',
-        odd: 'black'
-      },
-      f: {
-        even: 'black',
-        odd: 'white'
-      },
-      g: {
-        even: 'white',
-        odd: 'black'
-      },
-      h: {
-        even: 'black',
-        odd: 'white'
-      }
-    }
     this.horizon = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
     this.vertical = [1, 2, 3, 4, 5, 6, 7, 8]
+    this.board = this.createBoardConfig()
+  }
+
+  createBoardConfig () {
+    const config = {}
+    const colors = ['white', 'black']
+    this.horizon.forEach((letter, index) => {
+      config[letter] = {
+        even: colors[index % 2],
+        odd: colors[(index + 1) % 2]
+      }
+    })
+    return config
   }
 
   render (element) {
-    const hor = this.horizon
-    const ver = this.vertical.reverse()
     const board = this.board
     this.element.classList.add('board')
 
-    const getColor = (number) => {
-      return number % 2 === 0 ? 'even' : 'odd'
-    }
+    const getColor = (number) => (number % 2 === 0 ? 'even' : 'odd')
 
-    for (let i = 0; i < hor.length; i += 1) {
+    this.horizon.forEach((horLetter) => {
       const horElement = document.createElement('div')
       horElement.classList.add('line')
-      for (let j = 0; j < ver.length; j += 1) {
+      this.vertical.slice().reverse().forEach((verNumber) => {
         const cell = document.createElement('div')
-        cell.classList.add(`${board[hor[i]][getColor(ver[j])]}`)
-        cell.classList.add(`${[hor[i]]}-${ver[j]}`)
+        cell.classList.add(board[horLetter][getColor(verNumber)])
+        cell.classList.add(`${horLetter}-${verNumber}`)
         const id = document.createElement('span')
         id.className = 'span-id'
-        id.textContent = `${[hor[i]]}-${ver[j]}`
+        id.textContent = `${horLetter}-${verNumber}`
         cell.appendChild(id)
         horElement.appendChild(cell)
-        this.element.appendChild(horElement)
-      }
-    }
+      })
+      this.element.appendChild(horElement)
+    })
 
     element.appendChild(this.element)
   }
