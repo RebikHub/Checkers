@@ -9,7 +9,6 @@ export default class Game {
   }
 
   start () {
-    // лучше прикаждом ходе тут обновлять все состояние доски и тут вычислять новые клетки и шашки
     const cells = document.querySelectorAll('.black')
     const whites = this.positionWhite
     const blacks = this.positionBlack
@@ -50,6 +49,12 @@ export default class Game {
             const element = document.querySelector(`.${stepCell}`)
             this.removeChecker(id)
             this.createChecker(element, stepCell, this.whoseMove)
+
+            const removeId = {
+              x: (this.currentPosition(id).x + this.currentPosition(stepCell).x) / 2,
+              y: (this.currentPosition(id).y + this.currentPosition(stepCell).y) / 2
+            }
+            this.removeChecker(Game.numberToId(removeId))
             this.updatePositions()
             this.whoseMove = this.whoseMove === 'white' ? 'black' : 'white'
           }
@@ -71,6 +76,7 @@ export default class Game {
       allCells.push(cell.classList[1])
     }
     this.emptyCells = allCells.filter((c) => !checkersCells.includes(c))
+
     this.clearStylePossibleMove()
   }
 
@@ -98,7 +104,13 @@ export default class Game {
 
   addStylePossibleMove (moves) {
     this.clearStylePossibleMove()
-    moves.forEach((move) => {
+    moves.move.forEach((move) => {
+      const el = document.querySelector(`.${move}`)
+      if (el) {
+        el.classList.add('possible-move')
+      }
+    })
+    moves.cut.forEach((move) => {
       const el = document.querySelector(`.${move}`)
       if (el) {
         el.classList.add('possible-move')
@@ -162,6 +174,10 @@ export default class Game {
     }
   }
 
+  static numberToId (position) {
+    return `${Game.converterNumber(position.x)}-${position.y}`
+  }
+
   possibleMoves (id) {
     const cutDownMove = []
     const position = this.currentPosition(id)
@@ -173,7 +189,53 @@ export default class Game {
         x: this.whoseMove === 'white' ? position.x + 1 : position.x + 1,
         y: this.whoseMove === 'white' ? position.y + 1 : position.y - 1
       }
-    ].map((move) => `${Game.converterNumber(move.x)}-${move.y}`)
+    ].map(Game.numberToId)
+
+    const backMoves = [
+      {
+        x: this.whoseMove === 'white' ? position.x - 1 : position.x - 1,
+        y: this.whoseMove === 'white' ? position.y - 1 : position.y + 1
+      }, {
+        x: this.whoseMove === 'white' ? position.x + 1 : position.x + 1,
+        y: this.whoseMove === 'white' ? position.y - 1 : position.y + 1
+      }
+    ].map(Game.numberToId)
+
+    // console.log(backMoves)
+
+    backMoves.forEach((cell, index) => {
+      if (this.whoseMove === 'white' && this.positionBlack.includes(cell)) {
+        const cutDownCell = this.currentPosition(cell)
+        if (index === 0) {
+          cutDownMove.push({
+            x: cutDownCell.x - 1,
+            y: cutDownCell.y - 1
+          })
+        }
+
+        if (index === 1) {
+          cutDownMove.push({
+            x: cutDownCell.x + 1,
+            y: cutDownCell.y - 1
+          })
+        }
+      } else if (this.whoseMove === 'black' && this.positionWhite.includes(cell)) {
+        const cutDownCell = this.currentPosition(cell)
+        if (index === 0) {
+          cutDownMove.push({
+            x: cutDownCell.x - 1,
+            y: cutDownCell.y + 1
+          })
+        }
+
+        if (index === 1) {
+          cutDownMove.push({
+            x: cutDownCell.x + 1,
+            y: cutDownCell.y + 1
+          })
+        }
+      }
+    })
 
     moves.forEach((cell, index) => {
       if (this.whoseMove === 'white' && this.positionBlack.includes(cell)) {
@@ -209,7 +271,7 @@ export default class Game {
       }
     })
 
-    const cutDownMoves = cutDownMove.map((move) => `${Game.converterNumber(move.x)}-${move.y}`)
+    const cutDownMoves = cutDownMove.map(Game.numberToId)
 
     const result = {
       cut: [],
