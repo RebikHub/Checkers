@@ -25,6 +25,7 @@ a:hover {
 body {
   margin: 0;
   display: flex;
+  flex-direction: column;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
@@ -34,6 +35,7 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
+  padding-top: 1rem;
   text-align: center;
 }
 
@@ -76,6 +78,7 @@ body {
   background-color: bisque;
   border-radius: 50%;
   cursor: pointer;
+  box-shadow: 2px 2px 4px black;
 }
 
 .checker-black {
@@ -84,6 +87,7 @@ body {
   background-color: black;
   border-radius: 50%;
   cursor: pointer;
+  box-shadow: 2px 2px 4px black;
 }
 
 .possible-move {
@@ -100,4 +104,35 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+.joker {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.joker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 45%;
+  height: 45%;
+  background-color: gold;
+  border-radius: 50%;
+}
+
+.whose-move {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.btn-reset {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
 }

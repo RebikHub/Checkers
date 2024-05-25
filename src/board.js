@@ -31,10 +31,11 @@ export default class Board {
         const cell = document.createElement('div')
         cell.classList.add(board[horLetter][getColor(verNumber)])
         cell.classList.add(`${horLetter}-${verNumber}`)
-        const id = document.createElement('span')
-        id.className = 'span-id'
-        id.textContent = `${horLetter}-${verNumber}`
-        cell.appendChild(id)
+        // span for check id
+        // const id = document.createElement('span')
+        // id.className = 'span-id'
+        // id.textContent = `${horLetter}-${verNumber}`
+        // cell.appendChild(id)
         horElement.appendChild(cell)
       })
       this.element.appendChild(horElement)
