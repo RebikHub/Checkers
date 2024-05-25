@@ -10,6 +10,8 @@ export default class Game {
     this.moves = null
     this.id = null
     this.elementTitle = null
+    this.timer = null
+    this.positionRandom = []
   }
 
   start () {
@@ -41,6 +43,63 @@ export default class Game {
     this.setupCheckers('black', this.positionBlack)
   }
 
+  randomBlackChecker () {
+    this.positionRandom = [...this.positionBlack]
+    let checkerId = null
+    let moves = null
+
+    while (this.positionRandom.length > 0) {
+      checkerId = this.positionRandom[Math.floor(Math.random() * this.positionRandom.length)]
+      moves = this.possibleMoves(checkerId)
+      console.log(this.moves)
+      if (moves.cut.length > 0) {
+        this.id = checkerId
+        this.moves = moves
+        this.addStylePossibleMove(moves)
+        return
+      }
+      this.positionRandom = this.positionRandom.filter(i => i !== checkerId)
+    }
+
+    this.positionRandom = [...this.positionBlack]
+
+    while (this.positionRandom.length > 0) {
+      checkerId = this.positionRandom[Math.floor(Math.random() * this.positionRandom.length)]
+      moves = this.possibleMoves(checkerId)
+      console.log(this.moves)
+      if (moves.move.length > 0) {
+        this.id = checkerId
+        this.moves = moves
+        this.addStylePossibleMove(moves)
+        return
+      }
+
+      this.positionRandom = this.positionRandom.filter(i => i !== checkerId)
+    }
+  }
+
+  randomMove (moves) {
+    const stepCell = moves[Math.floor(Math.random() * moves.length)]
+    return stepCell
+  }
+
+  moveCPU () {
+    this.randomBlackChecker()
+    if (this.moves && this.moves.cut.length > 0) {
+      const stepCell = this.randomMove(this.moves.cut)
+      this.cutChecker(this.id, stepCell)
+      if (this.checkCutSteps(stepCell).length === 0) {
+        this.switchPlayer()
+      } else {
+        this.moveCPU()
+      }
+    } else if (this.moves && this.moves.move.length > 0) {
+      const stepCell = this.randomMove(this.moves.move)
+      this.moveChecker(this.id, stepCell)
+      this.switchPlayer()
+    }
+  }
+
   setupCheckers (color, positions) {
     positions.forEach(position => {
       this.createChecker(position, color)
@@ -66,19 +125,20 @@ export default class Game {
 
     if (isCurrentPlayerChecker) {
       this.id = target.dataset.id
-      this.joker = target.classList.contains('joker')
       this.moves = this.possibleMoves(this.id)
       this.addStylePossibleMove(this.moves)
     } else {
       const stepCell = target.className.split(' ')[1]
 
-      if (this.moves && this.moves.move.includes(stepCell)) {
-        this.moveChecker(this.id, stepCell)
-        this.switchPlayer()
-      } else if (this.moves && this.moves.cut.includes(stepCell)) {
-        this.cutChecker(this.id, stepCell)
-        if (this.checkCutSteps(stepCell).length === 0) {
+      if (this.whoseMove === 'white') {
+        if (this.moves && this.moves.move.includes(stepCell)) {
+          this.moveChecker(this.id, stepCell)
           this.switchPlayer()
+        } else if (this.moves && this.moves.cut.includes(stepCell)) {
+          this.cutChecker(this.id, stepCell)
+          if (this.checkCutSteps(stepCell).length === 0) {
+            this.switchPlayer()
+          }
         }
       }
 
@@ -127,6 +187,14 @@ export default class Game {
   switchPlayer () {
     this.whoseMove = this.whoseMove === 'white' ? 'black' : 'white'
     this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
+    if (this.whoseMove === 'black') {
+      this.moves = null
+      this.id = null
+      if (this.timer) {
+        clearTimeout(this.timer)
+      }
+      this.timer = setTimeout(() => this.moveCPU(), 2000)
+    }
   }
 
   updatePositions (clear = true) {
@@ -222,7 +290,6 @@ export default class Game {
   }
 
   possibleMoves (id) {
-    this.updatePositions(false)
     const position = this.currentPosition(id)
     const direction = this.whoseMove === 'white' ? 1 : -1
 

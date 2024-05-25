@@ -1,5 +1,6 @@
 export default class Board {
-  constructor () {
+  constructor (app) {
+    this.app = app
     this.element = document.createElement('div')
     this.horizon = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
     this.vertical = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -18,7 +19,7 @@ export default class Board {
     return config
   }
 
-  render (element) {
+  render () {
     const board = this.board
     this.element.classList.add('board')
 
@@ -41,6 +42,6 @@ export default class Board {
       this.element.appendChild(horElement)
     })
 
-    element.appendChild(this.element)
+    this.app.appendChild(this.element)
   }
 }
