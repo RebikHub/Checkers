@@ -136,3 +136,18 @@ body {
   border: none;
   cursor: pointer;
 }
+
+.btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-group button {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}

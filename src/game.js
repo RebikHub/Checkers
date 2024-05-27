@@ -1,7 +1,7 @@
 import Checker from './checker'
 
 export default class Game {
-  constructor () {
+  constructor (enemy) {
     this.whoseMove = 'white'
     this.positionWhite = ['a-1', 'a-3', 'b-2', 'c-1', 'c-3', 'd-2', 'e-1', 'e-3', 'f-2', 'g-1', 'g-3', 'h-2']
     this.positionBlack = ['a-7', 'b-6', 'b-8', 'c-7', 'd-6', 'd-8', 'e-7', 'f-6', 'f-8', 'g-7', 'h-6', 'h-8']
@@ -12,18 +12,23 @@ export default class Game {
     this.elementTitle = null
     this.timer = null
     this.positionRandom = []
+    this.enemy = enemy
   }
 
   start () {
-    this.setupCheckers('white', this.positionWhite)
-    this.setupCheckers('black', this.positionBlack)
-    this.setupEventListeners()
-    const app = document.querySelector('#app')
-    const div = document.createElement('div')
-    div.classList.add('whose-move')
-    div.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
-    app.insertAdjacentElement('beforebegin', div)
-    this.elementTitle = div
+    if (this.enemy.cpu || this.enemy.human) {
+      this.setupCheckers('white', this.positionWhite)
+      this.setupCheckers('black', this.positionBlack)
+      this.setupEventListeners()
+      const app = document.querySelector('#app')
+      const div = document.createElement('div')
+      div.classList.add('whose-move')
+      div.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
+      app.insertAdjacentElement('beforebegin', div)
+      this.elementTitle = div
+    } else {
+      this.enemy.mount(this.start.bind(this))
+    }
   }
 
   reset () {
@@ -37,7 +42,9 @@ export default class Game {
     this.moves = null
     this.id = null
     const btn = document.querySelector('.btn-reset')
-    this.elementTitle.removeChild(btn)
+    if (btn) {
+      this.elementTitle.removeChild(btn)
+    }
     this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
     this.setupCheckers('white', this.positionWhite)
     this.setupCheckers('black', this.positionBlack)
@@ -51,7 +58,6 @@ export default class Game {
     while (this.positionRandom.length > 0) {
       checkerId = this.positionRandom[Math.floor(Math.random() * this.positionRandom.length)]
       moves = this.possibleMoves(checkerId)
-      console.log(this.moves)
       if (moves.cut.length > 0) {
         this.id = checkerId
         this.moves = moves
@@ -66,7 +72,6 @@ export default class Game {
     while (this.positionRandom.length > 0) {
       checkerId = this.positionRandom[Math.floor(Math.random() * this.positionRandom.length)]
       moves = this.possibleMoves(checkerId)
-      console.log(this.moves)
       if (moves.move.length > 0) {
         this.id = checkerId
         this.moves = moves
@@ -130,7 +135,17 @@ export default class Game {
     } else {
       const stepCell = target.className.split(' ')[1]
 
-      if (this.whoseMove === 'white') {
+      if (this.whoseMove === 'white' && this.enemy.cpu) {
+        if (this.moves && this.moves.move.includes(stepCell)) {
+          this.moveChecker(this.id, stepCell)
+          this.switchPlayer()
+        } else if (this.moves && this.moves.cut.includes(stepCell)) {
+          this.cutChecker(this.id, stepCell)
+          if (this.checkCutSteps(stepCell).length === 0) {
+            this.switchPlayer()
+          }
+        }
+      } else if (this.enemy.human) {
         if (this.moves && this.moves.move.includes(stepCell)) {
           this.moveChecker(this.id, stepCell)
           this.switchPlayer()
@@ -187,7 +202,7 @@ export default class Game {
   switchPlayer () {
     this.whoseMove = this.whoseMove === 'white' ? 'black' : 'white'
     this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
-    if (this.whoseMove === 'black') {
+    if (this.whoseMove === 'black' && this.enemy.cpu) {
       this.moves = null
       this.id = null
       if (this.timer) {
@@ -219,11 +234,12 @@ export default class Game {
     }
 
     if (this.positionBlack.length === 0 || this.positionWhite.length === 0) {
-      const button = document.createElement('button')
-      button.textContent = 'Начать заново'
-      button.className = 'btn-reset'
-      this.elementTitle.appendChild(button)
-      button.addEventListener('click', this.reset.bind(this))
+      // const button = document.createElement('button')
+      // button.textContent = 'Начать заново'
+      // button.className = 'btn-reset'
+      // this.elementTitle.appendChild(button)
+      this.enemy.mount(this.reset.bind(this))
+      // button.addEventListener('click', this.reset.bind(this))
     }
   }
 
