@@ -3,7 +3,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
-  base: command !== 'serve' ? '/pwa-media-test/' : '/',
+  base: command !== 'serve' ? '/checkers/' : '/',
   plugins: [VitePWA({
     registerType: 'autoUpdate',
     // strategies: 'injectManifest',
