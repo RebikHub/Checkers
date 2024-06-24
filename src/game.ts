@@ -1,7 +1,22 @@
-import Checker from './checker'
+import Checker from './checker.js'
+import Enemy from './enemy.js'
+
+type Coordinate = { x: number; y: number; }
+type Move = { move: string[]; cut: string[]; }
 
 export default class Game {
-  constructor (enemy) {
+  whoseMove: string
+  positionWhite: string[]
+  positionBlack: string[]
+  emptyCells: string[]
+  jokers: Set<string>
+  moves: null | Move
+  id: undefined | null | string
+  elementTitle: null | HTMLDivElement
+  timer: null | number
+  positionRandom: string[]
+  enemy: Enemy
+  constructor (enemy: Enemy) {
     this.whoseMove = 'white'
     this.positionWhite = ['a-1', 'a-3', 'b-2', 'c-1', 'c-3', 'd-2', 'e-1', 'e-3', 'f-2', 'g-1', 'g-3', 'h-2']
     this.positionBlack = ['a-7', 'b-6', 'b-8', 'c-7', 'd-6', 'd-8', 'e-7', 'f-6', 'f-8', 'g-7', 'h-6', 'h-8']
@@ -16,11 +31,11 @@ export default class Game {
   }
 
   start () {
-    if (this.enemy.cpu || this.enemy.human) {
+    const app = document.querySelector('#app')
+    if ((this.enemy.cpu || this.enemy.human) && app) {
       this.setupCheckers('white', this.positionWhite)
       this.setupCheckers('black', this.positionBlack)
       this.setupEventListeners()
-      const app = document.querySelector('#app')
       const div = document.createElement('div')
       div.classList.add('whose-move')
       div.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
@@ -42,17 +57,19 @@ export default class Game {
     this.moves = null
     this.id = null
     const btn = document.querySelector('.btn-reset')
-    if (btn) {
+    if (btn && this.elementTitle) {
       this.elementTitle.removeChild(btn)
     }
-    this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
+    if (this.elementTitle) {
+      this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
+    }
     this.setupCheckers('white', this.positionWhite)
     this.setupCheckers('black', this.positionBlack)
   }
 
   randomBlackChecker () {
     this.positionRandom = [...this.positionBlack]
-    let checkerId = null
+    let checkerId: string | null = null
     let moves = null
 
     while (this.positionRandom.length > 0) {
@@ -83,14 +100,14 @@ export default class Game {
     }
   }
 
-  randomMove (moves) {
+  randomMove (moves: string[]) {
     const stepCell = moves[Math.floor(Math.random() * moves.length)]
     return stepCell
   }
 
   moveCPU () {
     this.randomBlackChecker()
-    if (this.moves && this.moves.cut.length > 0) {
+    if (this.moves && this.moves.cut.length > 0 && this.id) {
       const stepCell = this.randomMove(this.moves.cut)
       this.cutChecker(this.id, stepCell)
       if (this.checkCutSteps(stepCell).length === 0) {
@@ -98,20 +115,20 @@ export default class Game {
       } else {
         this.moveCPU()
       }
-    } else if (this.moves && this.moves.move.length > 0) {
+    } else if (this.moves && this.moves.move.length > 0 && this.id) {
       const stepCell = this.randomMove(this.moves.move)
       this.moveChecker(this.id, stepCell)
       this.switchPlayer()
     }
   }
 
-  setupCheckers (color, positions) {
+  setupCheckers (color: string, positions: string[]) {
     positions.forEach(position => {
       this.createChecker(position, color)
     })
   }
 
-  removeCheckers (positions) {
+  removeCheckers (positions: string[]) {
     positions.forEach(position => {
       this.removeChecker(position)
     })
@@ -124,32 +141,35 @@ export default class Game {
     })
   }
 
-  handleCellClick (e) {
+  handleCellClick (e: Event) {
     const target = e.target
+    if (target instanceof HTMLElement) {
     const isCurrentPlayerChecker = target.className.includes(this.whoseMove) && target.dataset.id
 
     if (isCurrentPlayerChecker) {
       this.id = target.dataset.id
+      if (this.id) 
       this.moves = this.possibleMoves(this.id)
+      if (this.moves)
       this.addStylePossibleMove(this.moves)
     } else {
       const stepCell = target.className.split(' ')[1]
 
       if (this.whoseMove === 'white' && this.enemy.cpu) {
-        if (this.moves && this.moves.move.includes(stepCell)) {
+        if (this.moves && this.moves.move.includes(stepCell) && this.id) {
           this.moveChecker(this.id, stepCell)
           this.switchPlayer()
-        } else if (this.moves && this.moves.cut.includes(stepCell)) {
+        } else if (this.moves && this.moves.cut.includes(stepCell) && this.id) {
           this.cutChecker(this.id, stepCell)
           if (this.checkCutSteps(stepCell).length === 0) {
             this.switchPlayer()
           }
         }
       } else if (this.enemy.human) {
-        if (this.moves && this.moves.move.includes(stepCell)) {
+        if (this.moves && this.moves.move.includes(stepCell) && this.id) {
           this.moveChecker(this.id, stepCell)
           this.switchPlayer()
-        } else if (this.moves && this.moves.cut.includes(stepCell)) {
+        } else if (this.moves && this.moves.cut.includes(stepCell) && this.id) {
           this.cutChecker(this.id, stepCell)
           if (this.checkCutSteps(stepCell).length === 0) {
             this.switchPlayer()
@@ -160,8 +180,9 @@ export default class Game {
       this.checkWinner()
     }
   }
+  }
 
-  addJoker (id, checker) {
+  addJoker (id: string, checker: Element) {
     const position = this.currentPosition(id)
     if (this.jokers.has(id)) {
       checker.classList.add('joker')
@@ -174,7 +195,7 @@ export default class Game {
     }
   }
 
-  moveChecker (id, stepCell) {
+  moveChecker (id: string, stepCell: string) {
     this.removeChecker(id)
     if (this.jokers.has(id)) {
       this.jokers.delete(id)
@@ -184,7 +205,7 @@ export default class Game {
     this.updatePositions()
   }
 
-  cutChecker (id, stepCell) {
+  cutChecker (id: string, stepCell: string) {
     this.moveChecker(id, stepCell)
 
     const positon = this.currentPosition(id)
@@ -201,7 +222,7 @@ export default class Game {
 
   switchPlayer () {
     this.whoseMove = this.whoseMove === 'white' ? 'black' : 'white'
-    this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
+    if (this.elementTitle) this.elementTitle.textContent = `Сейчас ходят: ${this.whoseMove === 'white' ? 'Белые' : 'Черные'}`
     if (this.whoseMove === 'black' && this.enemy.cpu) {
       this.moves = null
       this.id = null
@@ -217,8 +238,8 @@ export default class Game {
     const blackCells = document.querySelectorAll('.checker-black')
     const whiteCells = document.querySelectorAll('.checker-white')
 
-    this.positionBlack = Array.from(blackCells).map(item => item.dataset.id)
-    this.positionWhite = Array.from(whiteCells).map(item => item.dataset.id)
+    this.positionBlack = (Array.from(blackCells) as HTMLElement[]).map(item => item.dataset.id ? item.dataset.id : '')
+    this.positionWhite = (Array.from(whiteCells)  as HTMLElement[]).map(item => item.dataset.id ? item.dataset.id : '')
 
     const occupiedCells = [...this.positionBlack, ...this.positionWhite]
     this.emptyCells = Array.from(cells).map(cell => cell.classList[1]).filter(cell => !occupiedCells.includes(cell))
@@ -227,26 +248,21 @@ export default class Game {
   }
 
   checkWinner () {
-    if (this.positionBlack.length === 0) {
+    if (this.elementTitle && this.positionBlack.length === 0) {
       this.elementTitle.textContent = 'Победили белые!'
-    } else if (this.positionWhite.length === 0) {
+    } else if (this.elementTitle && this.positionWhite.length === 0) {
       this.elementTitle.textContent = 'Победили черные!'
     }
 
     if (this.positionBlack.length === 0 || this.positionWhite.length === 0) {
-      // const button = document.createElement('button')
-      // button.textContent = 'Начать заново'
-      // button.className = 'btn-reset'
-      // this.elementTitle.appendChild(button)
       this.enemy.mount(this.reset.bind(this))
-      // button.addEventListener('click', this.reset.bind(this))
     }
   }
 
-  createChecker (id, color) {
+  createChecker (id: string, color: string) {
     const element = document.querySelector(`.${id}`)
-    const checker = Checker[color]()
-    if (checker) {
+    const checker = Checker[color as 'white' | 'black']()
+    if (checker && element) {
       checker.dataset.id = id
       element.appendChild(checker)
       this.addJoker(id, checker)
@@ -255,11 +271,11 @@ export default class Game {
     }
   }
 
-  removeChecker (id) {
+  removeChecker (id: string) {
     const cell = document.querySelector(`.${id}`)
     const checker = cell ? cell.querySelector(`[data-id=${id}]`) : null
 
-    if (checker) {
+    if (checker && cell) {
       cell.removeChild(checker)
     } else {
       console.warn(`Checker with id ${id} not found.`)
@@ -270,7 +286,7 @@ export default class Game {
     document.querySelectorAll('.black').forEach(cell => cell.classList.remove('possible-move'))
   }
 
-  addStylePossibleMove (moves) {
+  addStylePossibleMove (moves: Move) {
     this.clearStylePossibleMove()
     moves.move.concat(moves.cut).forEach(move => {
       const el = document.querySelector(`.${move}`)
@@ -280,15 +296,15 @@ export default class Game {
     })
   }
 
-  static converterLetter (letter) {
+  static converterLetter (letter: string) {
     return 'abcdefgh'.indexOf(letter) + 1
   }
 
-  static converterNumber (number) {
+  static converterNumber (number: number) {
     return 'abcdefgh'[number - 1]
   }
 
-  currentPosition (id) {
+  currentPosition (id: string) {
     const [letter, number] = id.split('-')
     return {
       x: Game.converterLetter(letter),
@@ -296,16 +312,16 @@ export default class Game {
     }
   }
 
-  static numberToId (position) {
+  static numberToId (position: Coordinate) {
     return `${Game.converterNumber(position.x)}-${position.y}`
   }
 
-  checkCutSteps (cell) {
+  checkCutSteps (cell: string) {
     const moves = this.possibleMoves(cell)
     return moves.cut
   }
 
-  possibleMoves (id) {
+  possibleMoves (id: string) {
     const position = this.currentPosition(id)
     const direction = this.whoseMove === 'white' ? 1 : -1
 
@@ -313,7 +329,12 @@ export default class Game {
       const dir = this.whoseMove === 'white' ? 1 : -1
       const step = 8
 
-      const moves = {
+      const moves: {
+        upLeft: Coordinate[],
+        upRight: Coordinate[],
+        downLeft: Coordinate[],
+        downRight: Coordinate[]
+      } = {
         upLeft: [],
         upRight: [],
         downLeft: [],
@@ -327,14 +348,17 @@ export default class Game {
         moves.downRight.push({ x: position.x + i, y: position.y - i * dir })
       }
 
-      const result = {
+      const result: {
+        move: string[],
+        cut: string[]
+      } = {
         move: [],
         cut: []
       }
 
-      const loopArray = (array) => {
+      const loopArray = (array: string[]) => {
         for (let i = 0; i < array.length; i++) {
-          const cell = array[i]
+          const cell: string = array[i]
           if (this[this.whoseMove === 'white' ? 'positionBlack' : 'positionWhite'].includes(cell)) {
             const cutPosition = this.currentPosition(cell)
             const cutMove = {
@@ -373,14 +397,17 @@ export default class Game {
       { x: position.x + 1, y: position.y - direction }
     ].map(Game.numberToId)
 
-    const result = {
+    const result: {
+      move: string[],
+      cut: string[]
+    } = {
       move: [],
       cut: []
     }
 
-    const addMoves = (moveList, targetColor, cut) => {
+    const addMoves = (moveList: string[], targetColor: string, cut?: string) => {
       moveList.forEach((cell) => {
-        if (this[targetColor].includes(cell)) {
+        if (this[targetColor as 'positionBlack' | 'positionWhite'].includes(cell)) {
           const cutPosition = this.currentPosition(cell)
           const cutMove = {
             x: position.x < cutPosition.x ? cutPosition.x + 1 : cutPosition.x - 1,
